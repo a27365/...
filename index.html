@@ -138,6 +138,9 @@
     <h2>Bersiap...</h2>
     <div id="signal"></div>
     <p>P1 = tekan <b>A</b> | P2 = tekan <b>L</b></p>
+    <button onclick="pressP1()">Player 1</button>
+    <button onclick="pressP2()">Player 2</button>
+
 </div>
 
 <!-- PUNISH PAGE -->
@@ -180,9 +183,14 @@
 
 <script>
 // ======================
-// LIST HUKUMAN (1 ARRAY)
+// DATA HUKUMAN
 // ======================
 const PUNISH_LIST = [
+    "Push up 10x",
+    "Plank 1 menit",
+    "Jalan jongkok 1 menit",
+    "Berdiri satu kaki 2 menit",
+    "Tidak boleh pegang HP 5 menit",
         "bdsm full tanpa istirahat.",
     "anal punishment 30 menit x hasil",
     "kunci vibrator dalam vagina dengan chasitybelt",
@@ -249,17 +257,11 @@ const PUNISH_LIST = [
     "streaming bdsm",
     "masturbasi mandiri",
     "lilin di seluruh tubuh",
-    "vibrator 1x24 jam",
-    "Push up 10x",
-    "Jongkok 20x",
-    "Plank 1 menit",
-    "Lari di tempat 30 detik",
-    "Diam tanpa gerak 1 menit",
-    "Lompat 15x"
+    "vibrator 1x24 jam"
 ];
 
 // ======================
-// VARIABLE GAME
+// VARIABEL GLOBAL
 // ======================
 let ready = false;
 let winner = null;
@@ -268,63 +270,30 @@ let lockPassword = "";
 let finalDuration = 0;
 let diceRolled = false;
 
-// Key untuk localStorage
-const STORAGE_KEY = "duel_locked_state_v1";
-
 // ======================
-// INISIALISASI (panggil saat load)
+// LOAD STATE DARI REFRESH
 // ======================
-function initGame() {
-    // sembunyikan semua halaman terlebih dahulu
-    document.querySelectorAll("#punishPage, #passwordSetPage, #dicePage, #lockedPage")
-        .forEach(el => el.style.display = "none");
+window.onload = () => {
+    const saved = localStorage.getItem("duelLock");
+    if (!saved) return;
 
-    document.getElementById("gameArea").style.display = "block";
-    document.getElementById("rollBtn").disabled = false;
-    document.getElementById("lockBtn").disabled = true;
-    document.getElementById("diceResult").innerHTML = "";
-    document.getElementById("signal").textContent = "Tekan Start untuk memulai";
-    document.getElementById("signal").style.color = "#333";
+    const data = JSON.parse(saved);
+    const now = Date.now();
+    const endTime = data.start + data.duration * 60000;
 
-    // load state dari localStorage jika ada
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-        try {
-            const s = JSON.parse(raw);
-            if (s && s.locked) {
-                // restore tampilan locked
-                loser = s.loser || "P?"; 
-                finalDuration = s.finalDuration || 0;
-                lockPassword = s.lockPasswordEncoded ? atob(s.lockPasswordEncoded) : "";
-                diceRolled = !!s.diceRolled;
-
-                // isi fields di locked page
-                document.getElementById("lockedLoser").textContent = `Yang Kalah: ${loser}`;
-                document.getElementById("lockedPunish").textContent = `Hukuman: ${s.punishText || "—"}`;
-                document.getElementById("lockedDuration").textContent = `Durasi: ${finalDuration} menit`;
-
-                // tampilkan locked page
-                document.getElementById("gameArea").style.display = "none";
-                document.getElementById("lockedPage").style.display = "flex";
-
-                // disable tombol roll/lock agar tidak bingung
-                document.getElementById("rollBtn").disabled = true;
-                document.getElementById("lockBtn").disabled = true;
-            }
-        } catch (err) {
-            console.warn("Gagal parse state:", err);
-            localStorage.removeItem(STORAGE_KEY);
-        }
+    if (now < endTime) {
+        loser = data.loser;
+        finalDuration = Math.ceil((endTime - now) / 60000);
+        showLockedAfterRefresh(data.punish);
+    } else {
+        localStorage.removeItem("duelLock");
     }
-}
+};
 
 // ======================
 // START DUEL
 // ======================
 function startDuel() {
-    // clear any stored lock state: memulai duel baru -> hapus lock lama
-    localStorage.removeItem(STORAGE_KEY);
-
     document.querySelectorAll("#punishPage, #passwordSetPage, #dicePage, #lockedPage")
         .forEach(el => el.style.display = "none");
 
@@ -344,11 +313,8 @@ function startDuel() {
     document.getElementById("lockBtn").disabled = true;
     document.getElementById("diceResult").innerHTML = "";
 
-    // reset punish box jika ada
-    if (document.getElementById("punishBox"))
-        document.getElementById("punishBox").textContent = "";
-
     let delay = Math.random() * 3000 + 2000;
+
     setTimeout(() => {
         ready = true;
         document.getElementById("signal").textContent = "GO!";
@@ -357,28 +323,33 @@ function startDuel() {
 }
 
 // ======================
-// KEY PRESS
+// TOMBOL P1 / P2 (HP friendly)
 // ======================
-document.addEventListener("keydown", (e) => {
+function pressP1() {
     if (!ready || winner) return;
-
-    if (e.key.toLowerCase() === "a") { winner = "P1"; loser = "P2"; showPunishPage(); }
-    if (e.key.toLowerCase() === "l") { winner = "P2"; loser = "P1"; showPunishPage(); }
-});
+    winner = "P1"; loser = "P2";
+    showPunishPage();
+}
+function pressP2() {
+    if (!ready || winner) return;
+    winner = "P2"; loser = "P1";
+    showPunishPage();
+}
 
 // ======================
-// SHOW PUNISH PAGE (RANDOM HUKUMAN)
+// PILIH HUKUMAN RANDOM
 // ======================
 function showPunishPage() {
+    const pick = PUNISH_LIST[Math.floor(Math.random() * PUNISH_LIST.length)];
+
     document.getElementById("gameArea").style.display = "none";
     document.getElementById("punishPage").style.display = "block";
 
     document.getElementById("loserName").textContent = `${loser} KALAH`;
+    document.getElementById("punishBox").textContent = pick;
 
-    // ambil satu hukuman random
-    let randomPunish = PUNISH_LIST[Math.floor(Math.random() * PUNISH_LIST.length)];
-
-    document.getElementById("punishBox").textContent = randomPunish;
+    // simpan hukuman yang terpilih
+    document.getElementById("selectedPunish").value = pick;
 }
 
 // ======================
@@ -400,7 +371,7 @@ function setPassword() {
 }
 
 // ======================
-// DICE PAGE (1 ROLL)
+// DICE PAGE
 // ======================
 function showDice() {
     document.getElementById("passwordSetPage").style.display = "none";
@@ -422,95 +393,71 @@ function rollDice() {
 }
 
 // ======================
-// HELPERS: simpan/clear state
-// ======================
-function saveLockedState(punishText) {
-    // encode password sederhana supaya tidak langsung terlihat (bukan enkripsi aman)
-    const encodedPass = lockPassword ? btoa(lockPassword) : "";
-
-    const state = {
-        locked: true,
-        loser: loser,
-        punishText: punishText,
-        finalDuration: finalDuration,
-        diceRolled: diceRolled,
-        lockPasswordEncoded: encodedPass,
-        timestamp: Date.now()
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-}
-
-function clearLockedState() {
-    localStorage.removeItem(STORAGE_KEY);
-}
-
-// ======================
-// LOCK SCREEN
+// LOCK SCREEN (simpan ke localStorage)
 // ======================
 function lockScreen() {
     if (!diceRolled) {
-        alert("Lempar dadu dulu sebelum mengunci halaman.");
+        alert("Lempar dadu dulu!");
         return;
     }
 
-    // ambil hukuman yang ditampilkan (punishBox)
-    const punishText = document.getElementById("punishBox").textContent || "—";
+    const punish = document.getElementById("selectedPunish").value;
 
-    // simpan state ke localStorage
-    saveLockedState(punishText);
+    // Simpan agar tidak hilang jika di-refresh
+    localStorage.setItem("duelLock", JSON.stringify({
+        loser: loser,
+        punish: punish,
+        duration: finalDuration,
+        start: Date.now(),
+        password: lockPassword
+    }));
 
-    // hilangkan dicePage dan tampilkan lockedPage
+    showLockedAfterRefresh(punish);
+}
+
+function showLockedAfterRefresh(punish) {
     document.getElementById("dicePage").style.display = "none";
 
     document.getElementById("lockedLoser").textContent = `Yang Kalah: ${loser}`;
-    document.getElementById("lockedPunish").textContent = `Hukuman: ${punishText}`;
-    document.getElementById("lockedDuration").textContent = `Durasi: ${finalDuration} menit`;
+    document.getElementById("lockedPunish").textContent = `Hukuman: ${punish}`;
+    document.getElementById("lockedDuration").textContent =
+        `Durasi tersisa: ${finalDuration} menit`;
 
     document.getElementById("unlockInput").value = "";
     document.getElementById("lockedPage").style.display = "flex";
-
-    // disable tombol agar tidak bisa dimainkan lagi sampai unlock
-    document.getElementById("rollBtn").disabled = true;
-    document.getElementById("lockBtn").disabled = true;
 }
 
 // ======================
-// UNLOCK (SALAH +2 MENIT)
+// UNLOCK
 // ======================
 function unlock() {
+    const saved = JSON.parse(localStorage.getItem("duelLock"));
+    if (!saved) return;
+
     let tryPass = document.getElementById("unlockInput").value;
 
-    if (tryPass === lockPassword) {
-        // unlocked — bersihkan state dan sembunyikan locked page
-        clearLockedState();
+    if (tryPass === saved.password) {
+        localStorage.removeItem("duelLock");
         document.getElementById("lockedPage").style.display = "none";
-        alert("Unlock berhasil. Halaman terbuka.");
+        alert("Unlock berhasil!");
     } else {
-        // jika salah, tambahkan durasi +2 menit, update localStorage & UI
-        finalDuration += 2;
-        document.getElementById("lockedDuration").textContent = `Durasi: ${finalDuration} menit`;
+        saved.duration += 2;
+        finalDuration = saved.duration;
 
-        // update stored state
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-            try {
-                const s = JSON.parse(raw);
-                s.finalDuration = finalDuration;
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-            } catch (err) {
-                console.warn("Gagal update stored duration:", err);
-            }
-        }
+        saved.start = Date.now(); // reset waktu
+        localStorage.setItem("duelLock", JSON.stringify(saved));
 
-        alert("Password salah! Durasi bertambah +2 menit.");
+        document.getElementById("lockedDuration").textContent =
+            `Durasi tersisa: ${finalDuration} menit`;
+
+        alert("Password salah! +2 menit");
     }
 }
-
-// ======================
-// PANGGIL inisialisasi saat DOM siap
-// ======================
-document.addEventListener("DOMContentLoaded", initGame);
 </script>
+
+<!-- Hidden untuk simpan hukuman -->
+<input type="hidden" id="selectedPunish">
+
 
 
 </body>
