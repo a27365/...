@@ -2,195 +2,105 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Reaction Duel + Dice + Password Lock (Single Roll)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Challenge</title>
 
 <style>
-    body {
-        background: #0d0000;
-        color: #ff4d4d;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        padding: 30px;
-        text-shadow: 0 0 6px #ff1c1c;
-    }
-
-    h1 {
-        margin-bottom: 15px;
-        font-size: 40px;
-        text-shadow: 0 0 12px #ff0000;
-    }
-
-    button {
-        padding: 15px 30px;
-        font-size: 20px;
-        border: 2px solid #ff1c1c;
-        border-radius: 8px;
-        cursor: pointer;
-        background: #250000;
-        color: #ffb3b3;
-        margin: 10px;
-        transition: 0.2s;
-        box-shadow: 0 0 12px #ff1c1c55;
-    }
-    button[disabled]{
-        opacity: 0.45;
-        cursor: default;
-        transform: none;
-        box-shadow: none;
-    }
-    button:hover:not([disabled]) {
-        background: #400000;
-        transform: scale(1.05);
-        box-shadow: 0 0 20px #ff1c1c;
-    }
-
-    #gameArea, 
-    #punishPage, 
-    #passwordSetPage, 
-    #dicePage, 
-    #lockedPage {
-        display: none;
-        margin-top: 40px;
-    }
-
-    #signal {
-        margin-top: 40px;
-        font-size: 50px;
-        font-weight: bold;
-        height: 80px;
-    }
-
-    #punishBox {
-        background: #1b0000;
-        padding: 25px;
-        border-radius: 10px;
-        margin-top: 30px;
-        border: 2px solid #700000;
-        box-shadow: 0 0 20px #ff000055;
-        width: 70%;
-        margin-left: auto;
-        margin-right: auto;
-        font-size: 22px;
-        color: #ffdddd;
-    }
-
-    #diceResult {
-        margin-top: 25px;
-        font-size: 34px;
-        font-weight: bold;
-        text-shadow: 0 0 12px #ff4444;
-    }
-
-    /* LOCK SCREEN */
-    #lockedPage {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(60,0,0,0.95);
-        color: #ff5a5a;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-shadow: 0 0 12px #ff0000;
-        z-index: 9999;
-        padding: 20px;
-    }
-
-    #lockedPage h1 {
-        font-size: 48px;
-        color: #ff1a1a;
-        text-shadow: 0 0 20px #ff0000;
-        margin-bottom: 25px;
-    }
-
-    input {
-        padding: 10px 15px;
-        font-size: 18px;
-        border-radius: 8px;
-        border: 2px solid #ff0000;
-        outline: none;
-        background: #2b0000;
-        color: #ffcccc;
-        margin-top: 10px;
-        text-align: center;
-        box-shadow: 0 0 10px #ff000055;
-    }
-
-    .lockInfo {
-        font-size: 22px;
-        margin-top: 10px;
-        color: #ffb3b3;
-        text-shadow: 0 0 12px #ff4444;
-    }
-
-    .note { font-size: 14px; color: #ffb3b3; margin-top: 10px; opacity: 0.9; }
+body {
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+}
+button {
+    background: #ff3b3b;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    color: white;
+    margin: 10px;
+    font-size: 17px;
+}
+#lockedPage {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 50px;
+}
+#historyBox {
+    background: #222;
+    padding: 15px;
+    border-radius: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    text-align: left;
+}
 </style>
 </head>
 <body>
 
-<h1>REACTION DUEL</h1>
+<h2> RANDOM punishment</h2>
 
-<button onclick="startDuel()">Mulai Duel</button>
+<!-- START BUTTON -->
+<button onclick="startChallenge()">GET Punishment</button>
+<p>good luck poor slave</p>
 
-<!-- GAME AREA -->
-<div id="gameArea">
-    <h2>Bersiap...</h2>
-    <div id="signal"></div>
-    <p>P1 = tekan <b>A</b> | P2 = tekan <b>L</b></p>
-    <button onclick="pressP1()">Player 1</button>
-    <button onclick="pressP2()">Player 2</button>
 
+<!-- CHALLENGE PAGE -->
+<div id="challengePage" style="display:none;">
+    <h2>punishment</h2>
+    <div id="challengeText" style="font-size:20px;margin:20px 0;"></div>
+    <button onclick="showPasswordSet()">Lanjut</button>
 </div>
 
-<!-- PUNISH PAGE -->
-<div id="punishPage">
-    <h2>Pemain Kalah:</h2>
-    <h3 id="loserName"></h3>
-    <div id="punishBox"></div>
-    <button onclick="showPasswordSet()">Lanjut Buat Password</button>
-</div>
-
-<!-- PASSWORD SET -->
-<div id="passwordSetPage">
-    <h2>Pemenang, buat password untuk mengunci halaman:</h2>
-    <input id="passInput" type="password" placeholder="Password...">
+<!-- PASSWORD SET PAGE -->
+<div id="passwordSetPage" style="display:none;">
+    <h3>Buat Password Untuk Kunci</h3>
+    <input id="passInput" type="password">
     <br><br>
     <button onclick="setPassword()">Set Password</button>
 </div>
 
 <!-- DICE PAGE -->
-<div id="dicePage">
-    <h2>Lempar Dadu (hanya 1 kali)</h2>
-    <button id="rollBtn" onclick="rollDice()">Lempar!</button>
-    <div id="diceResult"></div>
+<div id="dicePage" style="display:none;">
+    <h3>Lempar Dadu</h3>
+    <button id="rollBtn" onclick="rollDice()">ROLL</button>
+    <div id="diceResult" style="margin-top:15px;"></div>
     <br>
     <button id="lockBtn" onclick="lockScreen()" disabled>Kunci Halaman</button>
 </div>
 
-<!-- LOCKED PAGE -->
+<!-- LOCK PAGE -->
 <div id="lockedPage">
-    <h1>HALAMAN TERKUNCI</h1>
-    <div class="lockInfo" id="lockedLoser"></div>
-    <div class="lockInfo" id="lockedPunish"></div>
-    <div class="lockInfo" id="lockedDuration"></div>
-    <br><br>
-    <input type="password" id="unlockInput" placeholder="Password...">
-    <br><br>
+    <h2>🔒 Halaman Terkunci</h2>
+    <div id="lockedChallenge"></div>
+    <div id="lockedDuration"></div>
+    <input id="unlockInput" type="password" placeholder="Masukkan Password">
     <button onclick="unlock()">UNLOCK</button>
-    <div class="note">Setiap kali memasukkan password salah, durasi bertambah +2 menit.</div>
 </div>
+
+<hr>
+
+<!-- HISTORY -->
+<button onclick="showHistory()">Lihat History</button>
+<div id="historyBox"></div>
+
+<input type="hidden" id="selectedChallenge">
 
 <script>
 // ======================
-// DATA HUKUMAN
+// LIST CHALLENGE
 // ======================
-const PUNISH_LIST = [
-    "Push up 10x",
+const CHALLENGE_LIST = [
     "Plank 1 menit",
-    "Jalan jongkok 1 menit",
-    "Berdiri satu kaki 2 menit",
-    "Tidak boleh pegang HP 5 menit",
+    "Baca 1 halaman buku",
+    "Push up 15x",
+    "Squat 20x",
+    "Jalan cepat 3 menit",
+    "Hafalan 5 baris",
+    "Meditasi 2 menit",
+    "Bersih-bersih meja 1 menit",
         "bdsm full tanpa istirahat.",
     "anal punishment 30 menit x hasil",
     "kunci vibrator dalam vagina dengan chasitybelt",
@@ -260,21 +170,14 @@ const PUNISH_LIST = [
     "vibrator 1x24 jam"
 ];
 
-// ======================
-// VARIABEL GLOBAL
-// ======================
-let ready = false;
-let winner = null;
-let loser = null;
 let lockPassword = "";
 let finalDuration = 0;
-let diceRolled = false;
 
 // ======================
-// LOAD STATE DARI REFRESH
+// CEK JIKA MASIH TERKUNCI SAAT REFRESH
 // ======================
 window.onload = () => {
-    const saved = localStorage.getItem("duelLock");
+    const saved = localStorage.getItem("challengeLock");
     if (!saved) return;
 
     const data = JSON.parse(saved);
@@ -282,81 +185,34 @@ window.onload = () => {
     const endTime = data.start + data.duration * 60000;
 
     if (now < endTime) {
-        loser = data.loser;
         finalDuration = Math.ceil((endTime - now) / 60000);
-        showLockedAfterRefresh(data.punish);
+        showLockedAfterRefresh(data.challenge);
     } else {
-        localStorage.removeItem("duelLock");
+        localStorage.removeItem("challengeLock");
     }
 };
 
 // ======================
-// START DUEL
+// START CHALLENGE
 // ======================
-function startDuel() {
-    document.querySelectorAll("#punishPage, #passwordSetPage, #dicePage, #lockedPage")
+function startChallenge() {
+
+    document.querySelectorAll("#challengePage,#passwordSetPage,#dicePage,#lockedPage")
         .forEach(el => el.style.display = "none");
 
-    document.getElementById("gameArea").style.display = "block";
+    const pick = CHALLENGE_LIST[Math.floor(Math.random() * CHALLENGE_LIST.length)];
 
-    winner = null;
-    loser = null;
-    ready = false;
-    diceRolled = false;
-    finalDuration = 0;
-    lockPassword = "";
+    document.getElementById("challengeText").textContent = pick;
+    document.getElementById("selectedChallenge").value = pick;
 
-    document.getElementById("signal").textContent = "Tunggu sinyal...";
-    document.getElementById("signal").style.color = "#ff3b3b";
-
-    document.getElementById("rollBtn").disabled = false;
-    document.getElementById("lockBtn").disabled = true;
-    document.getElementById("diceResult").innerHTML = "";
-
-    let delay = Math.random() * 3000 + 2000;
-
-    setTimeout(() => {
-        ready = true;
-        document.getElementById("signal").textContent = "GO!";
-        document.getElementById("signal").style.color = "lime";
-    }, delay);
-}
-
-// ======================
-// TOMBOL P1 / P2 (HP friendly)
-// ======================
-function pressP1() {
-    if (!ready || winner) return;
-    winner = "P1"; loser = "P2";
-    showPunishPage();
-}
-function pressP2() {
-    if (!ready || winner) return;
-    winner = "P2"; loser = "P1";
-    showPunishPage();
-}
-
-// ======================
-// PILIH HUKUMAN RANDOM
-// ======================
-function showPunishPage() {
-    const pick = PUNISH_LIST[Math.floor(Math.random() * PUNISH_LIST.length)];
-
-    document.getElementById("gameArea").style.display = "none";
-    document.getElementById("punishPage").style.display = "block";
-
-    document.getElementById("loserName").textContent = `${loser} KALAH`;
-    document.getElementById("punishBox").textContent = pick;
-
-    // simpan hukuman yang terpilih
-    document.getElementById("selectedPunish").value = pick;
+    document.getElementById("challengePage").style.display = "block";
 }
 
 // ======================
 // PASSWORD SET
 // ======================
 function showPasswordSet() {
-    document.getElementById("punishPage").style.display = "none";
+    document.getElementById("challengePage").style.display = "none";
     document.getElementById("passwordSetPage").style.display = "block";
 }
 
@@ -379,51 +235,39 @@ function showDice() {
 }
 
 function rollDice() {
-    if (diceRolled) return;
-    diceRolled = true;
-
     let dice = Math.floor(Math.random() * 6) + 1;
     finalDuration = dice * 2;
 
     document.getElementById("diceResult").innerHTML =
-        `Dadu: <b>${dice}</b><br>Durasi awal: <b>${finalDuration} menit</b>`;
+        `Dadu: <b>${dice}</b><br>Durasi: <b>${finalDuration} menit</b>`;
 
     document.getElementById("rollBtn").disabled = true;
     document.getElementById("lockBtn").disabled = false;
 }
 
 // ======================
-// LOCK SCREEN (simpan ke localStorage)
+// LOCK SCREEN
 // ======================
 function lockScreen() {
-    if (!diceRolled) {
-        alert("Lempar dadu dulu!");
-        return;
-    }
+    const challenge = document.getElementById("selectedChallenge").value;
 
-    const punish = document.getElementById("selectedPunish").value;
-
-    // Simpan agar tidak hilang jika di-refresh
-    localStorage.setItem("duelLock", JSON.stringify({
-        loser: loser,
-        punish: punish,
+    localStorage.setItem("challengeLock", JSON.stringify({
+        challenge: challenge,
         duration: finalDuration,
         start: Date.now(),
         password: lockPassword
     }));
 
-    showLockedAfterRefresh(punish);
+    showLockedAfterRefresh(challenge);
 }
 
-function showLockedAfterRefresh(punish) {
-    document.getElementById("dicePage").style.display = "none";
+function showLockedAfterRefresh(challenge) {
+    document.querySelectorAll("#challengePage,#passwordSetPage,#dicePage")
+        .forEach(el => el.style.display = "none");
 
-    document.getElementById("lockedLoser").textContent = `Yang Kalah: ${loser}`;
-    document.getElementById("lockedPunish").textContent = `Hukuman: ${punish}`;
-    document.getElementById("lockedDuration").textContent =
-        `Durasi tersisa: ${finalDuration} menit`;
+    document.getElementById("lockedChallenge").textContent = `Challenge: ${challenge}`;
+    document.getElementById("lockedDuration").textContent = `Sisa Durasi: ${finalDuration} menit`;
 
-    document.getElementById("unlockInput").value = "";
     document.getElementById("lockedPage").style.display = "flex";
 }
 
@@ -431,34 +275,71 @@ function showLockedAfterRefresh(punish) {
 // UNLOCK
 // ======================
 function unlock() {
-    const saved = JSON.parse(localStorage.getItem("duelLock"));
+    const saved = JSON.parse(localStorage.getItem("challengeLock"));
     if (!saved) return;
 
     let tryPass = document.getElementById("unlockInput").value;
 
     if (tryPass === saved.password) {
-        localStorage.removeItem("duelLock");
+
+        // SIMPAN HISTORY
+        saveLog({
+            time: new Date().toLocaleString(),
+            challenge: saved.challenge,
+            duration: saved.duration
+        });
+
+        localStorage.removeItem("challengeLock");
         document.getElementById("lockedPage").style.display = "none";
-        alert("Unlock berhasil!");
+
+        alert("Selesai! Mantap!");
     } else {
         saved.duration += 2;
         finalDuration = saved.duration;
 
-        saved.start = Date.now(); // reset waktu
-        localStorage.setItem("duelLock", JSON.stringify(saved));
+        saved.start = Date.now();
+        localStorage.setItem("challengeLock", JSON.stringify(saved));
 
         document.getElementById("lockedDuration").textContent =
-            `Durasi tersisa: ${finalDuration} menit`;
+            `Sisa Durasi: ${finalDuration} menit`;
 
         alert("Password salah! +2 menit");
     }
 }
+
+// ======================
+// HISTORY
+// ======================
+function saveLog(data) {
+    let logs = JSON.parse(localStorage.getItem("challengeLogs") || "[]");
+    logs.push(data);
+    localStorage.setItem("challengeLogs", JSON.stringify(logs));
+}
+
+function showHistory() {
+    let logs = JSON.parse(localStorage.getItem("challengeLogs") || "[]");
+
+    const box = document.getElementById("historyBox");
+    box.innerHTML = "";
+
+    if (logs.length === 0) {
+        box.innerHTML = "<p>Belum ada history.</p>";
+        return;
+    }
+
+    logs.forEach((log, index) => {
+        box.innerHTML += `
+            <div class="log-item">
+                <b>Challenge ${index + 1}</b><br>
+                Waktu: ${log.time}<br>
+                Tugas: ${log.challenge}<br>
+                Durasi: ${log.duration} menit
+                <hr>
+            </div>
+        `;
+    });
+}
 </script>
-
-<!-- Hidden untuk simpan hukuman -->
-<input type="hidden" id="selectedPunish">
-
-
 
 </body>
 </html>
